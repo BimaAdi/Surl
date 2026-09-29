@@ -1,0 +1,36 @@
+{
+  "global": {
+    "variable": {
+      "url": "https://jsonplaceholder.typicode.com"
+    }
+  },
+  "api": {
+    "get_post_id": {
+      "url": "{url}/posts/25",
+      "method": "GET"
+    }, 
+    "create_post": {
+      "url": "{url}/posts",
+      "method": "POST",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": "{\"title\":\"some title\", \"body\":\"some body\"}"
+    },
+    "create_post_v2": {
+      "url": "{url}/posts",
+      "method": "POST",
+      "json": {
+        "title": "some title",
+        "body": "some body"
+      }    
+    },
+    "get_comments": {
+      "url": "{url}/comments",
+      "method": "GET",
+      "query": {
+        "postId": "100" 
+      }
+    }
+  }
+}
