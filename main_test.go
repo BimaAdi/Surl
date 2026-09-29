@@ -83,6 +83,32 @@ func TestExecuteRequestUsesJSONBody(t *testing.T) {
 	}
 }
 
+func TestExecuteRequestUsesFormBody(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Header.Get("Content-Type"); got != "application/x-www-form-urlencoded" {
+			t.Errorf("Content-Type = %q", got)
+		}
+		body, _ := io.ReadAll(r.Body)
+		if string(body) != `title=some+title&body=some+body` {
+			t.Errorf("body = %q", body)
+		}
+		_, _ = w.Write([]byte("ok"))
+	}))
+	defer server.Close()
+
+	_, err := core.ExecuteRequest(context.Background(), server.Client(), requestConfig{
+		URL:    server.URL,
+		Method: http.MethodPost,
+		Form: []core.FormValue{
+			{Name: "title", Value: "some title"},
+			{Name: "body", Value: "some body"},
+		},
+	}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestSubstituteLeavesUnknownVariables(t *testing.T) {
 	if got := core.Substitute("{known}/{unknown}", map[string]string{"known": "ok"}); got != "ok/{unknown}" {
 		t.Errorf("substitute() = %q", got)

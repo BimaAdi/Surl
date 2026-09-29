@@ -27,6 +27,7 @@ type RequestConfig struct {
 	Query   map[string]string `json:"query"`
 	Body    json.RawMessage   `json:"body"`
 	JSON    json.RawMessage   `json:"json"`
+	Form    []FormValue       `json:"form"`
 }
 
 type Response struct {
@@ -111,6 +112,10 @@ func ExecuteRequest(ctx context.Context, client HTTPClient, spec RequestConfig, 
 func parseRequestBody(req *http.Request, spec RequestConfig, variables map[string]string) {
 	if len(spec.JSON) > 0 {
 		parseJSONBody(req, spec.JSON, variables)
+		return
+	}
+	if len(spec.Form) > 0 {
+		parseFormBody(req, spec.Form, variables)
 		return
 	}
 	parseRawBody(req, spec.Body, variables)
