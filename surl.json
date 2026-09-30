@@ -1,7 +1,7 @@
 {
   "global": {
     "variable": {
-      "url": "https://jsonplaceholder.typicode.com"
+      "url": "http://127.0.0.1:8080"
     }
   },
   "api": {
@@ -44,6 +44,17 @@
       "method": "GET",
       "query": {
         "postId": "100" 
+      }
+    },
+    "mirror": {
+      "url": "{url}/mirror",
+      "method": "POST",
+      "query": {
+        "status": "400"
+      },
+      "json": {
+        "title": "some title",
+        "body": "some body"
       }
     }
   }

@@ -12,7 +12,6 @@ import (
 
 // These aliases and delegates keep the existing main-package tests focused on
 // the same API while the implementations live in core.
-type config = core.Config
 type requestConfig = core.RequestConfig
 type response = core.Response
 
