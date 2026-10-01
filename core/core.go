@@ -21,13 +21,15 @@ type Config struct {
 }
 
 type RequestConfig struct {
-	URL     string            `json:"url"`
-	Method  string            `json:"method"`
-	Headers map[string]string `json:"headers"`
-	Query   map[string]string `json:"query"`
-	Body    json.RawMessage   `json:"body"`
-	JSON    json.RawMessage   `json:"json"`
-	Form    []FormValue       `json:"form"`
+	URL           string               `json:"url"`
+	Method        string               `json:"method"`
+	Headers       map[string]string    `json:"headers"`
+	Query         map[string]string    `json:"query"`
+	Body          json.RawMessage      `json:"body"`
+	JSON          json.RawMessage      `json:"json"`
+	Form          []FormValue          `json:"form"`
+	FormMultipart []MultipartFormValue `json:"form_multipart"`
+	MultipartForm []MultipartFormValue `json:"multipart_form"`
 }
 
 type Response struct {
@@ -90,7 +92,9 @@ func ExecuteRequest(ctx context.Context, client HTTPClient, spec RequestConfig, 
 	}
 
 	// ParsedBody
-	parseRequestBody(req, spec, variables)
+	if err := parseRequestBody(req, spec, variables); err != nil {
+		return Response{}, fmt.Errorf("parse request body: %w", err)
+	}
 
 	// Execute and Parse the response
 	httpResponse, err := client.Do(req)
@@ -109,16 +113,24 @@ func ExecuteRequest(ctx context.Context, client HTTPClient, spec RequestConfig, 
 	return Response{Status: httpResponse.StatusCode, Header: headers, Body: string(responseBody)}, nil
 }
 
-func parseRequestBody(req *http.Request, spec RequestConfig, variables map[string]string) {
+func parseRequestBody(req *http.Request, spec RequestConfig, variables map[string]string) error {
 	if len(spec.JSON) > 0 {
 		parseJSONBody(req, spec.JSON, variables)
-		return
+		return nil
 	}
 	if len(spec.Form) > 0 {
 		parseFormBody(req, spec.Form, variables)
-		return
+		return nil
+	}
+	multipartForm := spec.FormMultipart
+	if len(multipartForm) == 0 {
+		multipartForm = spec.MultipartForm
+	}
+	if len(multipartForm) > 0 {
+		return parseMultipartBody(req, multipartForm, variables)
 	}
 	parseRawBody(req, spec.Body, variables)
+	return nil
 }
 
 func Substitute(value string, variables map[string]string) string {

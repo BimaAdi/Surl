@@ -31,6 +31,23 @@
         }
       ]
     },
+    "create_post_multipart": {
+      "url": "{url}/posts",
+      "method": "POST",
+      "form_multipart": [
+        {
+            "name": "username",
+            "type": "string",
+            "value": "hello"
+        },
+        {
+            "name": "file",
+            "type": "file",
+            "file_name": "README.md",
+            "file_path": "./README.md"
+        }
+      ]
+    },
     "create_post_raw": {
       "url": "{url}/posts",
       "method": "POST",
