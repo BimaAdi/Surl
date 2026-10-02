@@ -26,7 +26,7 @@ func TestExecuteRequestUsesJSONBody(t *testing.T) {
 		URL:    server.URL,
 		Method: http.MethodPost,
 		JSON:   json.RawMessage(`{"title":"some title","body":"some body"}`),
-	}, nil)
+	}, Config{})
 	if err != nil {
 		t.Fatal(err)
 	}

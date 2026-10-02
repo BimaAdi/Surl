@@ -55,7 +55,7 @@ func TestExecuteRequestUsesMultipartFormBody(t *testing.T) {
 			{Name: "username", Type: "string", Value: "hello"},
 			{Name: "upload", Type: "file", FileName: "renamed.txt", FilePath: filePath},
 		},
-	}, nil)
+	}, Config{})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -29,7 +29,7 @@ func RunAction(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("request %q not found in %s", cmd.Args().First(), confPath)
 	}
 
-	result, err := core.ExecuteRequest(ctx, http.DefaultClient, reqConfig, cfg.Global.Variable)
+	result, err := core.ExecuteRequest(ctx, http.DefaultClient, reqConfig, cfg)
 	if err != nil {
 		return err
 	}

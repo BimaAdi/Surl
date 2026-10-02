@@ -25,13 +25,15 @@ func TestExecuteRequestUsesMetadataAndVariables(t *testing.T) {
 	}))
 	defer server.Close()
 
+	var cfg Config
+	cfg.Global.Variable = map[string]string{"base": server.URL, "value": "value"}
 	result, err := ExecuteRequest(context.Background(), server.Client(), RequestConfig{
 		URL:     "{base}/users",
 		Method:  "post",
 		Headers: map[string]string{"X-Test": "{value}"},
 		Query:   map[string]string{"active": "true"},
 		Body:    []byte(`{"name":"{value}"}`),
-	}, map[string]string{"base": server.URL, "value": "value"})
+	}, cfg)
 	if err != nil || result.Status != http.StatusOK || result.Body != "ok" {
 		t.Fatalf("executeRequest() = %#v, %v", result, err)
 	}
@@ -51,7 +53,7 @@ func TestExecuteRequestDecodesStringBody(t *testing.T) {
 		URL:    server.URL,
 		Method: http.MethodPost,
 		Body:   json.RawMessage(`"{\"title\":\"some title\"}"`),
-	}, nil)
+	}, Config{})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -28,7 +28,7 @@ func TestExecuteRequestUsesFormBody(t *testing.T) {
 			{Name: "title", Value: "some title"},
 			{Name: "body", Value: "some body"},
 		},
-	}, nil)
+	}, Config{})
 	if err != nil {
 		t.Fatal(err)
 	}

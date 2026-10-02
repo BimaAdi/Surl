@@ -16,6 +16,7 @@ import (
 type Config struct {
 	Global struct {
 		Variable map[string]string `json:"variable"`
+		Headers  map[string]string `json:"headers"`
 	} `json:"global"`
 	API map[string]RequestConfig `json:"api"`
 }
@@ -56,7 +57,10 @@ func LoadConfig(path string) (Config, error) {
 	return cfg, nil
 }
 
-func ExecuteRequest(ctx context.Context, client HTTPClient, spec RequestConfig, variables map[string]string) (Response, error) {
+func ExecuteRequest(ctx context.Context, client HTTPClient, spec RequestConfig, cfg Config) (Response, error) {
+	variables := cfg.Global.Variable
+	globalHeaders := cfg.Global.Headers
+
 	// Url
 	requestURL := Substitute(spec.URL, variables)
 	if requestURL == "" {
@@ -87,6 +91,10 @@ func ExecuteRequest(ctx context.Context, client HTTPClient, spec RequestConfig, 
 	}
 
 	// Headers
+	// Global headers are set first so local headers with the same name override them.
+	for key, value := range globalHeaders {
+		req.Header.Set(Substitute(key, variables), Substitute(value, variables))
+	}
 	for key, value := range spec.Headers {
 		req.Header.Set(Substitute(key, variables), Substitute(value, variables))
 	}
