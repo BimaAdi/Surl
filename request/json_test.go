@@ -1,4 +1,4 @@
-package core
+package request_test
 
 import (
 	"context"
@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/BimaAdi/surl/core"
 )
 
 func TestExecuteRequestUsesJSONBody(t *testing.T) {
@@ -22,11 +24,11 @@ func TestExecuteRequestUsesJSONBody(t *testing.T) {
 	}))
 	defer server.Close()
 
-	_, err := ExecuteRequest(context.Background(), server.Client(), RequestConfig{
+	_, err := core.ExecuteRequest(context.Background(), server.Client(), core.RequestConfig{
 		URL:    server.URL,
 		Method: http.MethodPost,
 		JSON:   json.RawMessage(`{"title":"some title","body":"some body"}`),
-	}, Config{})
+	}, core.Config{})
 	if err != nil {
 		t.Fatal(err)
 	}

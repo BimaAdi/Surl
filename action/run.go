@@ -6,10 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/BimaAdi/surl/core"
 	"github.com/urfave/cli/v3"
 )
+
+var variablePattern = regexp.MustCompile(`\{([a-zA-Z0-9_.-]+)\}`)
 
 func RunAction(ctx context.Context, cmd *cli.Command) error {
 	if cmd.NArg() != 1 {
@@ -27,6 +30,11 @@ func RunAction(ctx context.Context, cmd *cli.Command) error {
 	reqConfig, ok := cfg.API[cmd.Args().First()]
 	if !ok {
 		return fmt.Errorf("request %q not found in %s", cmd.Args().First(), confPath)
+	}
+
+	reqConfig, cfg, err = core.SubstituteRequest(reqConfig, cfg)
+	if err != nil {
+		return err
 	}
 
 	result, err := core.ExecuteRequest(ctx, http.DefaultClient, reqConfig, cfg)

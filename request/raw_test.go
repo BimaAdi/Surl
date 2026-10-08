@@ -1,4 +1,4 @@
-package core
+package request_test
 
 import (
 	"context"
@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/BimaAdi/surl/core"
 )
 
 func TestExecuteRequestUsesMetadataAndVariables(t *testing.T) {
@@ -25,14 +27,13 @@ func TestExecuteRequestUsesMetadataAndVariables(t *testing.T) {
 	}))
 	defer server.Close()
 
-	var cfg Config
-	cfg.Global.Variable = map[string]string{"base": server.URL, "value": "value"}
-	result, err := ExecuteRequest(context.Background(), server.Client(), RequestConfig{
-		URL:     "{base}/users",
+	var cfg core.Config
+	result, err := core.ExecuteRequest(context.Background(), server.Client(), core.RequestConfig{
+		URL:     server.URL + "/users",
 		Method:  "post",
-		Headers: map[string]string{"X-Test": "{value}"},
+		Headers: map[string]string{"X-Test": "value"},
 		Query:   map[string]string{"active": "true"},
-		Body:    []byte(`{"name":"{value}"}`),
+		Body:    []byte(`{"name":"value"}`),
 	}, cfg)
 	if err != nil || result.Status != http.StatusOK || result.Body != "ok" {
 		t.Fatalf("executeRequest() = %#v, %v", result, err)
@@ -49,11 +50,11 @@ func TestExecuteRequestDecodesStringBody(t *testing.T) {
 	}))
 	defer server.Close()
 
-	_, err := ExecuteRequest(context.Background(), server.Client(), RequestConfig{
+	_, err := core.ExecuteRequest(context.Background(), server.Client(), core.RequestConfig{
 		URL:    server.URL,
 		Method: http.MethodPost,
 		Body:   json.RawMessage(`"{\"title\":\"some title\"}"`),
-	}, Config{})
+	}, core.Config{})
 	if err != nil {
 		t.Fatal(err)
 	}

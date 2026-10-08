@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +11,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/BimaAdi/surl/request"
 )
 
 type BasicAuthConfig struct {
@@ -34,17 +35,17 @@ type Config struct {
 }
 
 type RequestConfig struct {
-	URL           string               `json:"url"`
-	Method        string               `json:"method"`
-	Headers       map[string]string    `json:"headers"`
-	Query         map[string]string    `json:"query"`
-	BasicAuth     *BasicAuthConfig     `json:"basic-auth"`
-	TLSConfig     *TLSConfig           `json:"tls-config"`
-	Body          json.RawMessage      `json:"body"`
-	JSON          json.RawMessage      `json:"json"`
-	Form          []FormValue          `json:"form"`
-	FormMultipart []MultipartFormValue `json:"form_multipart"`
-	MultipartForm []MultipartFormValue `json:"multipart_form"`
+	URL           string                       `json:"url"`
+	Method        string                       `json:"method"`
+	Headers       map[string]string            `json:"headers"`
+	Query         map[string]string            `json:"query"`
+	BasicAuth     *BasicAuthConfig             `json:"basic-auth"`
+	TLSConfig     *TLSConfig                   `json:"tls-config"`
+	Body          json.RawMessage              `json:"body"`
+	JSON          json.RawMessage              `json:"json"`
+	Form          []request.FormValue          `json:"form"`
+	FormMultipart []request.MultipartFormValue `json:"form_multipart"`
+	MultipartForm []request.MultipartFormValue `json:"multipart_form"`
 }
 
 type Response struct {
@@ -72,23 +73,18 @@ func LoadConfig(path string) (Config, error) {
 }
 
 func ExecuteRequest(ctx context.Context, client HTTPClient, spec RequestConfig, cfg Config) (Response, error) {
-	variables := cfg.Global.Variable
 	globalHeaders := cfg.Global.Headers
 
 	// Url
-	requestURL := Substitute(spec.URL, variables)
-	if requestURL == "" {
-		return Response{}, errors.New("request URL is empty")
-	}
-	parsedURL, err := url.Parse(requestURL)
+	parsedURL, err := url.Parse(spec.URL)
 	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
-		return Response{}, fmt.Errorf("invalid request URL %q", requestURL)
+		return Response{}, fmt.Errorf("invalid request URL %q", spec.URL)
 	}
 
 	// Query parameters
 	query := parsedURL.Query()
 	for key, value := range spec.Query {
-		query.Set(Substitute(key, variables), Substitute(value, variables))
+		query.Set(key, value)
 	}
 	parsedURL.RawQuery = query.Encode()
 
@@ -107,14 +103,14 @@ func ExecuteRequest(ctx context.Context, client HTTPClient, spec RequestConfig, 
 	// Headers
 	// Global headers are set first so local headers with the same name override them.
 	for key, value := range globalHeaders {
-		req.Header.Set(Substitute(key, variables), Substitute(value, variables))
+		req.Header.Set(key, value)
 	}
 	for key, value := range spec.Headers {
-		req.Header.Set(Substitute(key, variables), Substitute(value, variables))
+		req.Header.Set(key, value)
 	}
 
 	// ParsedBody
-	if err := parseRequestBody(req, spec, variables); err != nil {
+	if err := parseRequestBody(req, spec); err != nil {
 		return Response{}, fmt.Errorf("parse request body: %w", err)
 	}
 
@@ -125,7 +121,7 @@ func ExecuteRequest(ctx context.Context, client HTTPClient, spec RequestConfig, 
 		basicAuth = cfg.Global.BasicAuth
 	}
 	if basicAuth != nil {
-		req.SetBasicAuth(Substitute(basicAuth.Username, variables), Substitute(basicAuth.Password, variables))
+		req.SetBasicAuth(basicAuth.Username, basicAuth.Password)
 	}
 
 	// TLS config
@@ -155,13 +151,13 @@ func ExecuteRequest(ctx context.Context, client HTTPClient, spec RequestConfig, 
 	return Response{Status: httpResponse.StatusCode, Header: headers, Body: string(responseBody)}, nil
 }
 
-func parseRequestBody(req *http.Request, spec RequestConfig, variables map[string]string) error {
+func parseRequestBody(req *http.Request, spec RequestConfig) error {
 	if len(spec.JSON) > 0 {
-		parseJSONBody(req, spec.JSON, variables)
+		request.ParseJSONBody(req, spec.JSON)
 		return nil
 	}
 	if len(spec.Form) > 0 {
-		parseFormBody(req, spec.Form, variables)
+		request.ParseFormBody(req, spec.Form)
 		return nil
 	}
 	multipartForm := spec.FormMultipart
@@ -169,20 +165,10 @@ func parseRequestBody(req *http.Request, spec RequestConfig, variables map[strin
 		multipartForm = spec.MultipartForm
 	}
 	if len(multipartForm) > 0 {
-		return parseMultipartBody(req, multipartForm, variables)
+		return request.ParseMultipartBody(req, multipartForm)
 	}
-	parseRawBody(req, spec.Body, variables)
+	request.ParseRawBody(req, spec.Body)
 	return nil
-}
-
-func Substitute(value string, variables map[string]string) string {
-	return variablePattern.ReplaceAllStringFunc(value, func(match string) string {
-		name := match[1 : len(match)-1]
-		if replacement, ok := variables[name]; ok {
-			return replacement
-		}
-		return match
-	})
 }
 
 // applyTLSConfig returns a client whose transport uses the given TLS settings.

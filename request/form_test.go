@@ -1,4 +1,4 @@
-package core
+package request_test
 
 import (
 	"context"
@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/BimaAdi/surl/core"
+	"github.com/BimaAdi/surl/request"
 )
 
 func TestExecuteRequestUsesFormBody(t *testing.T) {
@@ -21,14 +24,14 @@ func TestExecuteRequestUsesFormBody(t *testing.T) {
 	}))
 	defer server.Close()
 
-	_, err := ExecuteRequest(context.Background(), server.Client(), RequestConfig{
+	_, err := core.ExecuteRequest(context.Background(), server.Client(), core.RequestConfig{
 		URL:    server.URL,
 		Method: http.MethodPost,
-		Form: []FormValue{
+		Form: []request.FormValue{
 			{Name: "title", Value: "some title"},
 			{Name: "body", Value: "some body"},
 		},
-	}, Config{})
+	}, core.Config{})
 	if err != nil {
 		t.Fatal(err)
 	}
