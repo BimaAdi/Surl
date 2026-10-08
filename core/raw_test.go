@@ -26,13 +26,12 @@ func TestExecuteRequestUsesMetadataAndVariables(t *testing.T) {
 	defer server.Close()
 
 	var cfg Config
-	cfg.Global.Variable = map[string]string{"base": server.URL, "value": "value"}
 	result, err := ExecuteRequest(context.Background(), server.Client(), RequestConfig{
-		URL:     "{base}/users",
+		URL:     server.URL + "/users",
 		Method:  "post",
-		Headers: map[string]string{"X-Test": "{value}"},
+		Headers: map[string]string{"X-Test": "value"},
 		Query:   map[string]string{"active": "true"},
-		Body:    []byte(`{"name":"{value}"}`),
+		Body:    []byte(`{"name":"value"}`),
 	}, cfg)
 	if err != nil || result.Status != http.StatusOK || result.Body != "ok" {
 		t.Fatalf("executeRequest() = %#v, %v", result, err)

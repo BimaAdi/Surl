@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func parseRawBody(req *http.Request, value json.RawMessage, variables map[string]string) {
+func parseRawBody(req *http.Request, value json.RawMessage) {
 	value = bytes.TrimSpace(value)
 	if len(value) == 0 || string(value) == "null" {
 		return
@@ -19,7 +19,7 @@ func parseRawBody(req *http.Request, value json.RawMessage, variables map[string
 	if err := json.Unmarshal(value, &raw); err == nil {
 		value = []byte(raw)
 	}
-	body := []byte(Substitute(string(value), variables))
+	body := []byte(string(value))
 	req.Body = io.NopCloser(bytes.NewReader(body))
 	req.ContentLength = int64(len(body))
 	req.GetBody = func() (io.ReadCloser, error) {

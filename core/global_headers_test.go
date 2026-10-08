@@ -17,8 +17,7 @@ func TestExecuteRequestAppliesGlobalHeaders(t *testing.T) {
 	defer server.Close()
 
 	var cfg Config
-	cfg.Global.Variable = map[string]string{"token": "sometoken"}
-	cfg.Global.Headers = map[string]string{"Authorization": "Bearer {token}"}
+	cfg.Global.Headers = map[string]string{"Authorization": "Bearer sometoken"}
 	result, err := ExecuteRequest(context.Background(), server.Client(), RequestConfig{
 		URL:    server.URL,
 		Method: http.MethodGet,

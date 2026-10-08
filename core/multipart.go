@@ -17,20 +17,20 @@ type MultipartFormValue struct {
 	FilePath string `json:"file_path"`
 }
 
-func parseMultipartBody(req *http.Request, values []MultipartFormValue, variables map[string]string) error {
+func parseMultipartBody(req *http.Request, values []MultipartFormValue) error {
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
 
 	for _, value := range values {
-		name := Substitute(value.Name, variables)
+		name := value.Name
 		switch value.Type {
 		case "string":
-			if err := writer.WriteField(name, Substitute(value.Value, variables)); err != nil {
+			if err := writer.WriteField(name, value.Value); err != nil {
 				return fmt.Errorf("write multipart field %q: %w", name, err)
 			}
 		case "file":
-			fileName := Substitute(value.FileName, variables)
-			filePath := Substitute(value.FilePath, variables)
+			fileName := value.FileName
+			filePath := value.FilePath
 			file, err := os.Open(filePath)
 			if err != nil {
 				return fmt.Errorf("open multipart file %q: %w", filePath, err)

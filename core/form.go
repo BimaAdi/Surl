@@ -13,7 +13,7 @@ type FormValue struct {
 	Value string `json:"value"`
 }
 
-func parseFormBody(req *http.Request, values []FormValue, variables map[string]string) {
+func parseFormBody(req *http.Request, values []FormValue) {
 	if len(values) == 0 {
 		return
 	}
@@ -23,9 +23,9 @@ func parseFormBody(req *http.Request, values []FormValue, variables map[string]s
 		if encoded.Len() > 0 {
 			encoded.WriteByte('&')
 		}
-		encoded.WriteString(url.QueryEscape(Substitute(value.Name, variables)))
+		encoded.WriteString(url.QueryEscape(value.Name))
 		encoded.WriteByte('=')
-		encoded.WriteString(url.QueryEscape(Substitute(value.Value, variables)))
+		encoded.WriteString(url.QueryEscape(value.Value))
 	}
 	body := []byte(encoded.String())
 	req.Body = io.NopCloser(bytes.NewReader(body))
