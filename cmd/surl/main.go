@@ -7,6 +7,7 @@ import (
 
 	"github.com/BimaAdi/surl/action"
 	"github.com/BimaAdi/surl/core"
+	"github.com/BimaAdi/surl/tutorial"
 	"github.com/urfave/cli/v3"
 )
 
@@ -44,6 +45,13 @@ func newApp() *cli.Command {
 				&cli.StringFlag{Name: "conf", Aliases: []string{"c"}, Usage: "path to the configuration JSON file"},
 			},
 			Action: action.ListAction,
+		}, {
+			Name:  "tutorial",
+			Usage: "print the surl.json tutorial",
+			Action: func(ctx context.Context, cmd *cli.Command) error {
+				_, err := fmt.Fprint(cmd.Root().Writer, tutorial.Content)
+				return err
+			},
 		}},
 	}
 }
