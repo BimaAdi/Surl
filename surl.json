@@ -5,6 +5,13 @@
     },
     "headers": {
       "Authorization": "Bearer sometoken"
+    },
+    "basic-auth": {
+      "username": "myusername",
+      "password": "some-password"
+    },
+    "tls-config": {
+      "insecure-skip-verify": true
     }
   },
   "api": {
@@ -75,6 +82,17 @@
       "json": {
         "title": "some title",
         "body": "some body"
+      }
+    },
+    "get_post_basic_auth": {
+      "url": "{url}/posts/25",
+      "method": "GET",
+      "tls-config": {
+        "insecure-skip-verify": true
+      },
+      "basic-auth": {
+        "username": "myusername",
+        "password": "some-password"
       }
     }
   }

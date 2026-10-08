@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,10 +14,21 @@ import (
 	"strings"
 )
 
+type BasicAuthConfig struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type TLSConfig struct {
+	InsecureSkipVerify bool `json:"insecure-skip-verify"`
+}
+
 type Config struct {
 	Global struct {
-		Variable map[string]string `json:"variable"`
-		Headers  map[string]string `json:"headers"`
+		Variable  map[string]string `json:"variable"`
+		Headers   map[string]string `json:"headers"`
+		BasicAuth *BasicAuthConfig  `json:"basic-auth"`
+		TLSConfig *TLSConfig        `json:"tls-config"`
 	} `json:"global"`
 	API map[string]RequestConfig `json:"api"`
 }
@@ -26,6 +38,8 @@ type RequestConfig struct {
 	Method        string               `json:"method"`
 	Headers       map[string]string    `json:"headers"`
 	Query         map[string]string    `json:"query"`
+	BasicAuth     *BasicAuthConfig     `json:"basic-auth"`
+	TLSConfig     *TLSConfig           `json:"tls-config"`
 	Body          json.RawMessage      `json:"body"`
 	JSON          json.RawMessage      `json:"json"`
 	Form          []FormValue          `json:"form"`
@@ -104,6 +118,26 @@ func ExecuteRequest(ctx context.Context, client HTTPClient, spec RequestConfig, 
 		return Response{}, fmt.Errorf("parse request body: %w", err)
 	}
 
+	// Basic auth
+	// The API-level basic auth takes priority over the global one.
+	basicAuth := spec.BasicAuth
+	if basicAuth == nil {
+		basicAuth = cfg.Global.BasicAuth
+	}
+	if basicAuth != nil {
+		req.SetBasicAuth(Substitute(basicAuth.Username, variables), Substitute(basicAuth.Password, variables))
+	}
+
+	// TLS config
+	// The API-level TLS config takes priority over the global one.
+	tlsConfig := spec.TLSConfig
+	if tlsConfig == nil {
+		tlsConfig = cfg.Global.TLSConfig
+	}
+	if tlsConfig != nil {
+		client = applyTLSConfig(client, tlsConfig)
+	}
+
 	// Execute and Parse the response
 	httpResponse, err := client.Do(req)
 	if err != nil {
@@ -149,4 +183,32 @@ func Substitute(value string, variables map[string]string) string {
 		}
 		return match
 	})
+}
+
+// applyTLSConfig returns a client whose transport uses the given TLS settings.
+// When the client already uses a *http.Transport its settings are cloned and
+// reused, otherwise the default transport settings are cloned.
+func applyTLSConfig(client HTTPClient, tlsConfig *TLSConfig) HTTPClient {
+	httpClient, ok := client.(*http.Client)
+	if !ok {
+		return client
+	}
+	base, ok := httpClient.Transport.(*http.Transport)
+	if !ok {
+		base, ok = http.DefaultTransport.(*http.Transport)
+		if !ok {
+			return client
+		}
+	}
+	cloned := base.Clone()
+	if cloned.TLSClientConfig == nil {
+		cloned.TLSClientConfig = &tls.Config{}
+	}
+	cloned.TLSClientConfig.InsecureSkipVerify = tlsConfig.InsecureSkipVerify
+	return &http.Client{
+		Transport:     cloned,
+		CheckRedirect: httpClient.CheckRedirect,
+		Jar:           httpClient.Jar,
+		Timeout:       httpClient.Timeout,
+	}
 }
