@@ -11,6 +11,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/BimaAdi/surl/request"
 )
 
 type BasicAuthConfig struct {
@@ -33,17 +35,17 @@ type Config struct {
 }
 
 type RequestConfig struct {
-	URL           string               `json:"url"`
-	Method        string               `json:"method"`
-	Headers       map[string]string    `json:"headers"`
-	Query         map[string]string    `json:"query"`
-	BasicAuth     *BasicAuthConfig     `json:"basic-auth"`
-	TLSConfig     *TLSConfig           `json:"tls-config"`
-	Body          json.RawMessage      `json:"body"`
-	JSON          json.RawMessage      `json:"json"`
-	Form          []FormValue          `json:"form"`
-	FormMultipart []MultipartFormValue `json:"form_multipart"`
-	MultipartForm []MultipartFormValue `json:"multipart_form"`
+	URL           string                       `json:"url"`
+	Method        string                       `json:"method"`
+	Headers       map[string]string            `json:"headers"`
+	Query         map[string]string            `json:"query"`
+	BasicAuth     *BasicAuthConfig             `json:"basic-auth"`
+	TLSConfig     *TLSConfig                   `json:"tls-config"`
+	Body          json.RawMessage              `json:"body"`
+	JSON          json.RawMessage              `json:"json"`
+	Form          []request.FormValue          `json:"form"`
+	FormMultipart []request.MultipartFormValue `json:"form_multipart"`
+	MultipartForm []request.MultipartFormValue `json:"multipart_form"`
 }
 
 type Response struct {
@@ -151,11 +153,11 @@ func ExecuteRequest(ctx context.Context, client HTTPClient, spec RequestConfig, 
 
 func parseRequestBody(req *http.Request, spec RequestConfig) error {
 	if len(spec.JSON) > 0 {
-		parseJSONBody(req, spec.JSON)
+		request.ParseJSONBody(req, spec.JSON)
 		return nil
 	}
 	if len(spec.Form) > 0 {
-		parseFormBody(req, spec.Form)
+		request.ParseFormBody(req, spec.Form)
 		return nil
 	}
 	multipartForm := spec.FormMultipart
@@ -163,9 +165,9 @@ func parseRequestBody(req *http.Request, spec RequestConfig) error {
 		multipartForm = spec.MultipartForm
 	}
 	if len(multipartForm) > 0 {
-		return parseMultipartBody(req, multipartForm)
+		return request.ParseMultipartBody(req, multipartForm)
 	}
-	parseRawBody(req, spec.Body)
+	request.ParseRawBody(req, spec.Body)
 	return nil
 }
 

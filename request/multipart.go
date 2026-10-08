@@ -1,4 +1,4 @@
-package core
+package request
 
 import (
 	"bytes"
@@ -17,7 +17,7 @@ type MultipartFormValue struct {
 	FilePath string `json:"file_path"`
 }
 
-func parseMultipartBody(req *http.Request, values []MultipartFormValue) error {
+func ParseMultipartBody(req *http.Request, values []MultipartFormValue) error {
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
 

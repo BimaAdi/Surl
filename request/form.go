@@ -1,4 +1,4 @@
-package core
+package request
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ type FormValue struct {
 	Value string `json:"value"`
 }
 
-func parseFormBody(req *http.Request, values []FormValue) {
+func ParseFormBody(req *http.Request, values []FormValue) {
 	if len(values) == 0 {
 		return
 	}

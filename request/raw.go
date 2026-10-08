@@ -1,4 +1,4 @@
-package core
+package request
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func parseRawBody(req *http.Request, value json.RawMessage) {
+func ParseRawBody(req *http.Request, value json.RawMessage) {
 	value = bytes.TrimSpace(value)
 	if len(value) == 0 || string(value) == "null" {
 		return

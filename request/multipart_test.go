@@ -1,4 +1,4 @@
-package core
+package request_test
 
 import (
 	"context"
@@ -9,6 +9,9 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/BimaAdi/surl/core"
+	"github.com/BimaAdi/surl/request"
 )
 
 func TestExecuteRequestUsesMultipartFormBody(t *testing.T) {
@@ -48,14 +51,14 @@ func TestExecuteRequestUsesMultipartFormBody(t *testing.T) {
 	}))
 	defer server.Close()
 
-	_, err := ExecuteRequest(context.Background(), server.Client(), RequestConfig{
+	_, err := core.ExecuteRequest(context.Background(), server.Client(), core.RequestConfig{
 		URL:    server.URL,
 		Method: http.MethodPost,
-		FormMultipart: []MultipartFormValue{
+		FormMultipart: []request.MultipartFormValue{
 			{Name: "username", Type: "string", Value: "hello"},
 			{Name: "upload", Type: "file", FileName: "renamed.txt", FilePath: filePath},
 		},
-	}, Config{})
+	}, core.Config{})
 	if err != nil {
 		t.Fatal(err)
 	}

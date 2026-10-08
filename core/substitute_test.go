@@ -3,6 +3,8 @@ package core
 import (
 	"encoding/json"
 	"testing"
+
+	"github.com/BimaAdi/surl/request"
 )
 
 func TestSubstitute(t *testing.T) {
@@ -101,13 +103,13 @@ func TestSubstituteRequestReplacesFields(t *testing.T) {
 		Headers:   map[string]string{"{hdr}": "Bearer {token}"},
 		BasicAuth: &BasicAuthConfig{Username: "{user}", Password: "{pass}"},
 		JSON:      json.RawMessage(`{"id":"{id}"}`),
-		Form: []FormValue{
+		Form: []request.FormValue{
 			{Name: "{field}", Value: "{id}"},
 		},
-		FormMultipart: []MultipartFormValue{
+		FormMultipart: []request.MultipartFormValue{
 			{Name: "{field}", Type: "{type}", Value: "{id}", FileName: "{file}", FilePath: "{path}"},
 		},
-		MultipartForm: []MultipartFormValue{
+		MultipartForm: []request.MultipartFormValue{
 			{Name: "{field}", Type: "file", Value: "{id}", FileName: "{file}", FilePath: "{path}"},
 		},
 	}

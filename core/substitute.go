@@ -3,6 +3,8 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/BimaAdi/surl/request"
 )
 
 func Substitute(value string, variables map[string]string) string {
@@ -74,13 +76,13 @@ func substituteRawBody(body json.RawMessage, variables map[string]string) (json.
 	return json.RawMessage(Substitute(string(body), variables)), nil
 }
 
-func substituteFormValues(values []FormValue, variables map[string]string) []FormValue {
+func substituteFormValues(values []request.FormValue, variables map[string]string) []request.FormValue {
 	if values == nil {
 		return nil
 	}
-	result := make([]FormValue, len(values))
+	result := make([]request.FormValue, len(values))
 	for i, value := range values {
-		result[i] = FormValue{
+		result[i] = request.FormValue{
 			Name:  Substitute(value.Name, variables),
 			Value: Substitute(value.Value, variables),
 		}
@@ -88,13 +90,13 @@ func substituteFormValues(values []FormValue, variables map[string]string) []For
 	return result
 }
 
-func substituteMultipartValues(values []MultipartFormValue, variables map[string]string) []MultipartFormValue {
+func substituteMultipartValues(values []request.MultipartFormValue, variables map[string]string) []request.MultipartFormValue {
 	if values == nil {
 		return nil
 	}
-	result := make([]MultipartFormValue, len(values))
+	result := make([]request.MultipartFormValue, len(values))
 	for i, value := range values {
-		result[i] = MultipartFormValue{
+		result[i] = request.MultipartFormValue{
 			Name:     Substitute(value.Name, variables),
 			Type:     value.Type,
 			Value:    Substitute(value.Value, variables),
