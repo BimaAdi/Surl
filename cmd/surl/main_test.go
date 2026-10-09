@@ -31,7 +31,7 @@ func TestNewAppRunsConfiguredRequest(t *testing.T) {
 	var output strings.Builder
 	app := newApp()
 	app.Writer = &output
-	if err := app.Run(context.Background(), []string{"surl", "--conf", configFile, "run", "get"}); err != nil {
+	if err := app.Run(context.Background(), []string{"surl", "--conf", configFile, "run", "--output", "json", "--verbose", "get"}); err != nil {
 		t.Fatal(err)
 	}
 	var result response

@@ -2,22 +2,28 @@ package action
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
 
 	"github.com/BimaAdi/surl/core"
+	"github.com/BimaAdi/surl/response"
 	"github.com/urfave/cli/v3"
 )
 
-var variablePattern = regexp.MustCompile(`\{([a-zA-Z0-9_.-]+)\}`)
+var _ = regexp.MustCompile(`\{([a-zA-Z0-9_.-]+)\}`)
 
 func RunAction(ctx context.Context, cmd *cli.Command) error {
 	if cmd.NArg() != 1 {
 		return errors.New("run requires exactly one request key")
 	}
+
+	output := cmd.String("output")
+	if output != "json" && output != "raw" {
+		return fmt.Errorf("invalid output %q: must be json or raw", output)
+	}
+	verbose := cmd.Bool("verbose")
 
 	confPath := cmd.String("conf")
 	if confPath == "" {
@@ -41,11 +47,19 @@ func RunAction(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
-	encoded, err := json.MarshalIndent(result, "", "  ")
-	if err != nil {
-		return fmt.Errorf("encode response: %w", err)
+	var encoded []byte
+	if output == "json" {
+		encoded, err = response.ResponseJSON(result, verbose)
+		if err != nil {
+			return err
+		}
+		encoded = append(encoded, '\n')
+	} else {
+		encoded, err = response.RawResponse(result, verbose)
+		if err != nil {
+			return err
+		}
 	}
-	encoded = append(encoded, '\n')
 	_, err = cmd.Root().Writer.Write(encoded)
 	return err
 }

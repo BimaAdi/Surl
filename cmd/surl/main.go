@@ -36,6 +36,8 @@ func newApp() *cli.Command {
 			ArgsUsage: "<key>",
 			Flags: []cli.Flag{
 				&cli.StringFlag{Name: "conf", Aliases: []string{"c"}, Usage: "path to the configuration JSON file"},
+				&cli.StringFlag{Name: "output", Aliases: []string{"o"}, Value: "raw", Usage: "output format: raw or json"},
+				&cli.BoolFlag{Name: "verbose", Aliases: []string{"v"}, Usage: "include response headers"},
 			},
 			Action: action.RunAction,
 		}, {
