@@ -12,6 +12,9 @@
     },
     "tls-config": {
       "insecure-skip-verify": true
+    },
+    "cookie": {
+      "cookie-key": "cookie-value"
     }
   },
   "api": {
@@ -93,6 +96,10 @@
       "basic-auth": {
         "username": "myusername",
         "password": "some-password"
+      },
+      "cookie": {
+        "cookie-key": "cookie-value",
+        "cookie-key-2": "cookie-value-2"
       }
     }
   }

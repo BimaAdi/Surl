@@ -28,6 +28,7 @@ type Config struct {
 	Global struct {
 		Variable  map[string]string `json:"variable"`
 		Headers   map[string]string `json:"headers"`
+		Cookies   map[string]string `json:"cookie"`
 		BasicAuth *BasicAuthConfig  `json:"basic-auth"`
 		TLSConfig *TLSConfig        `json:"tls-config"`
 	} `json:"global"`
@@ -38,6 +39,7 @@ type RequestConfig struct {
 	URL           string                       `json:"url"`
 	Method        string                       `json:"method"`
 	Headers       map[string]string            `json:"headers"`
+	Cookies       map[string]string            `json:"cookie"`
 	Query         map[string]string            `json:"query"`
 	BasicAuth     *BasicAuthConfig             `json:"basic-auth"`
 	TLSConfig     *TLSConfig                   `json:"tls-config"`
@@ -107,6 +109,19 @@ func ExecuteRequest(ctx context.Context, client HTTPClient, spec RequestConfig, 
 	}
 	for key, value := range spec.Headers {
 		req.Header.Set(key, value)
+	}
+
+	// Global cookies are applied first so request-level cookies with the same
+	// name override them.
+	cookies := make(map[string]string, len(cfg.Global.Cookies)+len(spec.Cookies))
+	for name, value := range cfg.Global.Cookies {
+		cookies[name] = value
+	}
+	for name, value := range spec.Cookies {
+		cookies[name] = value
+	}
+	for name, value := range cookies {
+		req.AddCookie(&http.Cookie{Name: name, Value: value})
 	}
 
 	// ParsedBody

@@ -17,8 +17,9 @@ surl run <key> -c path/to/surl.json   # use another config file (default: surl.j
 A config has two top-level sections:
 
 - `api` — a map of request keys to request specs, it can have multiple api
-- `global` — values shared by every request
+- `global` — values shared by every api
 
+api configuration always take priority then it used global configuration.
 here a example of surl.json
 ```json
 {
@@ -38,9 +39,12 @@ to run on shell just run
 ```sh
 surl run ping
 ```
+it will call GET http://localhost/ping
 
-### api
-#### Simple Get Api
+
+
+here are list of keys on surl.json:
+### Url and Method
 ```json
 {
     "api": {
@@ -51,8 +55,10 @@ surl run ping
     }
 }
 ```
+- [ ] global
+- [x] api
 
-#### Query Params
+### Query Params
 ```json
 {
     "api": {
@@ -68,9 +74,10 @@ surl run ping
 }
 ```
 url become http://localhost/?page=1&page_size=10
+- [ ] global
+- [x] api
 
-
-#### Raw Body
+### Raw Body
 ```json
 {
     "api": {
@@ -85,8 +92,12 @@ url become http://localhost/?page=1&page_size=10
     }
 }
 ```
+send raw body
+- [ ] global
+- [x] api
 
-#### Json 
+
+### Json 
 ```json
 {
     "api": {
@@ -102,8 +113,11 @@ url become http://localhost/?page=1&page_size=10
 }
 ```
 automatically add header content-type: application/json
+- [ ] global
+- [x] api
 
-#### Form Data
+
+### Form Data
 ```json
 {
     "api": {
@@ -120,8 +134,10 @@ automatically add header content-type: application/json
 ```
 automatically set header content-type: application/x-www-form-urlencoded.
 each item must contains "name" (string) and "value" (string)
+- [ ] global
+- [x] api
 
-#### Form Multipart
+### Form Multipart
 ```json
 {
     "api": {
@@ -164,10 +180,10 @@ the multi part item has two type
     "file_path": "<file path>"
 }
 ```
+- [ ] global
+- [x] api
  
-### Global
-Global is configuration that applied to all api.
-#### variable
+### variable
 ```json
 {
   "global": {
@@ -191,7 +207,12 @@ based on the example:
 - ping: http://127.0.0.1/ping
 - ping_name: http://127.0.0.1/hello?=John
 
-#### headers
+
+it defined only on global but it replace all {} on api as well. 
+- [x] global
+- [ ] api
+
+### headers
 ```json
 {
   "global": {
@@ -214,7 +235,31 @@ it add header to all api request. the headers from local will overide global hea
     - ping -> Authorization: Bearer globaltoken
     - pong -> Authorization: Bearer localtoken
 
-#### Basic Auth
+
+- [x] global
+- [x] api
+
+### cookie
+```json
+{
+  "global": {
+    "cookie": {
+      "key": "value"
+    }
+  },
+  "api": {
+    "url": "http://127.0.0.1/secure",
+    "cookie": {
+      "key": "value"
+    }
+  }
+}
+```
+add cookie 
+- [x] global
+- [x] api
+
+### Basic Auth
 ```json
 {
   "global": {
@@ -236,8 +281,10 @@ it add header to all api request. the headers from local will overide global hea
 }
 ```
 it add basic-auth to all api request. Like headers local will overide global.
+- [x] global
+- [x] api
 
-#### TLS Config
+### TLS Config
 ```json
 {
   "global": {
@@ -245,9 +292,16 @@ it add basic-auth to all api request. Like headers local will overide global.
       "insecure-skip-verify": true
     }
   },
-  "api": {}
+  "api": {
+    "url": "http://127.0.0.1/secure",
+    "tls-config": {
+      "insecure-skip-verify": true
+    }
   }
 }
 ```
 it add tls config to all api. currently only support insecure-skip-verify for other key comming soon.
+
+- [x] global
+- [x] api
 

@@ -95,12 +95,14 @@ func TestSubstituteRequestReplacesFields(t *testing.T) {
 		"type":   "string",
 	}
 	cfg.Global.Headers = map[string]string{"Accept": "{accept}"}
+	cfg.Global.Cookies = map[string]string{"{field}": "{token}"}
 	cfg.Global.BasicAuth = &BasicAuthConfig{Username: "{user}", Password: "{pass}"}
 
 	spec := RequestConfig{
 		URL:       "{base}/users/{id}",
 		Query:     map[string]string{"token": "{token}"},
 		Headers:   map[string]string{"{hdr}": "Bearer {token}"},
+		Cookies:   map[string]string{"session-{id}": "{token}"},
 		BasicAuth: &BasicAuthConfig{Username: "{user}", Password: "{pass}"},
 		JSON:      json.RawMessage(`{"id":"{id}"}`),
 		Form: []request.FormValue{
@@ -128,6 +130,9 @@ func TestSubstituteRequestReplacesFields(t *testing.T) {
 	if got.Headers["Authorization"] != "Bearer abc" {
 		t.Errorf("Headers = %v", got.Headers)
 	}
+	if got.Cookies["session-42"] != "abc" {
+		t.Errorf("Cookies = %v", got.Cookies)
+	}
 	if got.BasicAuth == nil || got.BasicAuth.Username != "alice" || got.BasicAuth.Password != "secret" {
 		t.Errorf("BasicAuth = %+v", got.BasicAuth)
 	}
@@ -154,6 +159,9 @@ func TestSubstituteRequestReplacesFields(t *testing.T) {
 
 	if gotCfg.Global.Headers["Accept"] != "application/json" {
 		t.Errorf("Global.Headers = %v", gotCfg.Global.Headers)
+	}
+	if gotCfg.Global.Cookies["title"] != "abc" {
+		t.Errorf("Global.Cookies = %v", gotCfg.Global.Cookies)
 	}
 	if gotCfg.Global.BasicAuth == nil || gotCfg.Global.BasicAuth.Username != "alice" || gotCfg.Global.BasicAuth.Password != "secret" {
 		t.Errorf("Global.BasicAuth = %+v", gotCfg.Global.BasicAuth)

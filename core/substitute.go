@@ -21,11 +21,13 @@ func SubstituteRequest(spec RequestConfig, cfg Config) (RequestConfig, Config, e
 	variables := cfg.Global.Variable
 
 	cfg.Global.Headers = substituteMap(cfg.Global.Headers, variables)
+	cfg.Global.Cookies = substituteMap(cfg.Global.Cookies, variables)
 	cfg.Global.BasicAuth = substituteBasicAuth(cfg.Global.BasicAuth, variables)
 
 	spec.URL = Substitute(spec.URL, variables)
 	spec.Query = substituteMap(spec.Query, variables)
 	spec.Headers = substituteMap(spec.Headers, variables)
+	spec.Cookies = substituteMap(spec.Cookies, variables)
 	spec.BasicAuth = substituteBasicAuth(spec.BasicAuth, variables)
 
 	body, err := substituteRawBody(spec.Body, variables)
