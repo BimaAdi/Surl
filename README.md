@@ -14,7 +14,7 @@ Surl is a cli tool like curl or wget. Instead of type all command on cli, surl r
 it make it easy to reproduce http request. Here an example of surl.json file.
 ```json
 {
-    "requests": [
+    "api": [
         {
             "name": "first",
             "url": "https://jsonplaceholder.typicode.com/todos/2",

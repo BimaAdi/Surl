@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 	"os"
@@ -44,6 +45,7 @@ type RequestConfig struct {
 	BasicAuth     *BasicAuthConfig             `json:"basic-auth"`
 	TLSConfig     *TLSConfig                   `json:"tls-config"`
 	Body          json.RawMessage              `json:"body"`
+	ReadFile      string                       `json:"readfile"`
 	JSON          json.RawMessage              `json:"json"`
 	Form          []request.FormValue          `json:"form"`
 	FormMultipart []request.MultipartFormValue `json:"form_multipart"`
@@ -114,12 +116,8 @@ func ExecuteRequest(ctx context.Context, client HTTPClient, spec RequestConfig, 
 	// Global cookies are applied first so request-level cookies with the same
 	// name override them.
 	cookies := make(map[string]string, len(cfg.Global.Cookies)+len(spec.Cookies))
-	for name, value := range cfg.Global.Cookies {
-		cookies[name] = value
-	}
-	for name, value := range spec.Cookies {
-		cookies[name] = value
-	}
+	maps.Copy(cookies, cfg.Global.Cookies)
+	maps.Copy(cookies, spec.Cookies)
 	for name, value := range cookies {
 		req.AddCookie(&http.Cookie{Name: name, Value: value})
 	}
@@ -181,6 +179,9 @@ func parseRequestBody(req *http.Request, spec RequestConfig) error {
 	}
 	if len(multipartForm) > 0 {
 		return request.ParseMultipartBody(req, multipartForm)
+	}
+	if spec.ReadFile != "" {
+		return request.ParseReadFileBody(req, spec.ReadFile)
 	}
 	request.ParseRawBody(req, spec.Body)
 	return nil

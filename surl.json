@@ -87,6 +87,11 @@
         "body": "some body"
       }
     },
+    "readfile": {
+      "url": "{url}/readfile",
+      "method": "PUT",
+      "readfile": "./README.md"
+    },
     "get_post_basic_auth": {
       "url": "{url}/posts/25",
       "method": "GET",

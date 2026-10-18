@@ -97,6 +97,40 @@ send raw body
 - [x] api
 
 
+### Read File Body
+```json
+{
+    "api": {
+        "readfile_example": {
+            "url": "http://localhost/posts",
+            "method": "POST",
+            "readfile": "./body.json"
+        }
+    }
+}
+```
+same as body but instead write the content directly, it read the content from a file
+and send it as the request body. the path support variable substitution too.
+```json
+{
+  "global": {
+    "variable": {
+      "dir": "./requests"
+    }
+  },
+  "api": {
+    "readfile_example": {
+      "url": "http://localhost/posts",
+      "method": "POST",
+      "readfile": "{dir}/body.json"
+    }
+  }
+}
+```
+- [ ] global
+- [x] api
+
+
 ### Json 
 ```json
 {

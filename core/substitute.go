@@ -35,6 +35,7 @@ func SubstituteRequest(spec RequestConfig, cfg Config) (RequestConfig, Config, e
 		return RequestConfig{}, Config{}, fmt.Errorf("substitute request body: %w", err)
 	}
 	spec.Body = body
+	spec.ReadFile = Substitute(spec.ReadFile, variables)
 	spec.JSON = json.RawMessage(Substitute(string(spec.JSON), variables))
 	spec.Form = substituteFormValues(spec.Form, variables)
 	spec.FormMultipart = substituteMultipartValues(spec.FormMultipart, variables)
