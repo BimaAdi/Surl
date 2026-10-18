@@ -329,12 +329,26 @@ it add basic-auth to all api request. Like headers local will overide global.
   "api": {
     "url": "http://127.0.0.1/secure",
     "tls-config": {
-      "insecure-skip-verify": true
+      "insecure-skip-verify": false,
+      "cert-filepath": "./internal-ca.crt",
+      "tls-version": "tls13"
     }
   }
 }
 ```
-it add tls config to all api. currently only support insecure-skip-verify for other key comming soon.
+it add tls config to all api. Like headers local will overide global.
+available keys:
+- `insecure-skip-verify` (bool): skip the server certificate verification
+- `cert-filepath` (string, optional): path to a PEM certificate file. it loaded
+  as trusted root CA, so the request can verify a self signed or internal CA
+  server certificate without `insecure-skip-verify`
+- `tls-version` (string, optional): minimum TLS version, default `tls13`. it
+  only accepts:
+  - `tls13` -> TLS 1.3
+  - `tls12` -> TLS 1.2
+
+surl fails with an error when `tls-version` has any other value or when
+`cert-filepath` can not be read or parsed.
 
 - [x] global
 - [x] api

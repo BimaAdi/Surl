@@ -106,6 +106,15 @@
         "cookie-key": "cookie-value",
         "cookie-key-2": "cookie-value-2"
       }
+    },
+    "tls": {
+      "url": "{url}/posts/25",
+      "method": "GET",
+      "tls-config": {
+        "insecure-skip-verify": false,
+        "cert-filepath": "aaa.crt",
+        "tls-version": "tls13"
+      } 
     }
   }
 }

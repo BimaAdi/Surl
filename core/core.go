@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -22,7 +23,9 @@ type BasicAuthConfig struct {
 }
 
 type TLSConfig struct {
-	InsecureSkipVerify bool `json:"insecure-skip-verify"`
+	InsecureSkipVerify bool    `json:"insecure-skip-verify"`
+	CertFilepath       *string `json:"cert-filepath"`
+	TLSVersion         *string `json:"tls-version"`
 }
 
 type Config struct {
@@ -144,7 +147,11 @@ func ExecuteRequest(ctx context.Context, client HTTPClient, spec RequestConfig, 
 		tlsConfig = cfg.Global.TLSConfig
 	}
 	if tlsConfig != nil {
-		client = applyTLSConfig(client, tlsConfig)
+		var err error
+		client, err = applyTLSConfig(client, tlsConfig)
+		if err != nil {
+			return Response{}, fmt.Errorf("apply tls config: %w", err)
+		}
 	}
 
 	// Execute and Parse the response
@@ -190,16 +197,44 @@ func parseRequestBody(req *http.Request, spec RequestConfig) error {
 // applyTLSConfig returns a client whose transport uses the given TLS settings.
 // When the client already uses a *http.Transport its settings are cloned and
 // reused, otherwise the default transport settings are cloned.
-func applyTLSConfig(client HTTPClient, tlsConfig *TLSConfig) HTTPClient {
+func applyTLSConfig(client HTTPClient, tlsConfig *TLSConfig) (HTTPClient, error) {
+	// Resolve the minimum TLS version. tls-version is optional and defaults
+	// to TLS 1.3.
+	var minVersion uint16 = tls.VersionTLS13
+	if tlsConfig.TLSVersion != nil {
+		switch *tlsConfig.TLSVersion {
+		case "tls13":
+			minVersion = tls.VersionTLS13
+		case "tls12":
+			minVersion = tls.VersionTLS12
+		default:
+			return nil, fmt.Errorf("invalid tls-version %q: must be \"tls12\" or \"tls13\"", *tlsConfig.TLSVersion)
+		}
+	}
+
+	// Load the certificate file into the root CA pool when given.
+	var rootCAs *x509.CertPool
+	if tlsConfig.CertFilepath != nil && *tlsConfig.CertFilepath != "" {
+		certPEM, err := os.ReadFile(*tlsConfig.CertFilepath)
+		if err != nil {
+			return nil, fmt.Errorf("read tls certificate file %q: %w", *tlsConfig.CertFilepath, err)
+		}
+		certPool := x509.NewCertPool()
+		if !certPool.AppendCertsFromPEM(certPEM) {
+			return nil, fmt.Errorf("parse tls certificate file %q", *tlsConfig.CertFilepath)
+		}
+		rootCAs = certPool
+	}
+
 	httpClient, ok := client.(*http.Client)
 	if !ok {
-		return client
+		return client, nil
 	}
 	base, ok := httpClient.Transport.(*http.Transport)
 	if !ok {
 		base, ok = http.DefaultTransport.(*http.Transport)
 		if !ok {
-			return client
+			return client, nil
 		}
 	}
 	cloned := base.Clone()
@@ -207,10 +242,12 @@ func applyTLSConfig(client HTTPClient, tlsConfig *TLSConfig) HTTPClient {
 		cloned.TLSClientConfig = &tls.Config{}
 	}
 	cloned.TLSClientConfig.InsecureSkipVerify = tlsConfig.InsecureSkipVerify
+	cloned.TLSClientConfig.MinVersion = minVersion
+	cloned.TLSClientConfig.RootCAs = rootCAs
 	return &http.Client{
 		Transport:     cloned,
 		CheckRedirect: httpClient.CheckRedirect,
 		Jar:           httpClient.Jar,
 		Timeout:       httpClient.Timeout,
-	}
+	}, nil
 }
