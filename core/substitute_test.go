@@ -92,6 +92,7 @@ func TestSubstituteRequestReplacesFields(t *testing.T) {
 		"field":  "title",
 		"file":   "a.txt",
 		"path":   "/tmp/a.txt",
+		"write":  "/tmp/out.json",
 		"type":   "string",
 	}
 	cfg.Global.Headers = map[string]string{"Accept": "{accept}"}
@@ -100,6 +101,7 @@ func TestSubstituteRequestReplacesFields(t *testing.T) {
 
 	spec := RequestConfig{
 		URL:       "{base}/users/{id}",
+		WriteFile: "{write}",
 		Query:     map[string]string{"token": "{token}"},
 		Headers:   map[string]string{"{hdr}": "Bearer {token}"},
 		Cookies:   map[string]string{"session-{id}": "{token}"},
@@ -123,6 +125,9 @@ func TestSubstituteRequestReplacesFields(t *testing.T) {
 
 	if got.URL != "https://api.example.com/users/42" {
 		t.Errorf("URL = %q", got.URL)
+	}
+	if got.WriteFile != "/tmp/out.json" {
+		t.Errorf("WriteFile = %q", got.WriteFile)
 	}
 	if got.Query["token"] != "abc" {
 		t.Errorf("Query[token] = %q", got.Query["token"])

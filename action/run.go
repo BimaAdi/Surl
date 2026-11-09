@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 
 	"github.com/BimaAdi/surl/core"
@@ -59,6 +60,15 @@ func RunAction(ctx context.Context, cmd *cli.Command) error {
 		if err != nil {
 			return err
 		}
+	}
+	if reqConfig.PrettifyJSON {
+		encoded = response.PrettifyJSON(encoded)
+	}
+	if reqConfig.WriteFile != "" {
+		if err := os.WriteFile(reqConfig.WriteFile, encoded, 0o644); err != nil {
+			return fmt.Errorf("write response file %q: %w", reqConfig.WriteFile, err)
+		}
+		return nil
 	}
 	_, err = cmd.Root().Writer.Write(encoded)
 	return err

@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/BimaAdi/surl/core"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -40,6 +42,40 @@ func TestNewAppRunsConfiguredRequest(t *testing.T) {
 	}
 	if result.Status != http.StatusOK || result.Body != "response" || result.Header["Content-Type"] != "text/plain; charset=utf-8" {
 		t.Errorf("response = %#v", result)
+	}
+}
+
+func TestNewAppWritesPrettifiedJSONToFile(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"title":"hello","body":"world"}`))
+	}))
+	defer server.Close()
+
+	dir := t.TempDir()
+	outputFile := filepath.Join(dir, "response.json")
+	configJSON := fmt.Sprintf(`{"global":{"variable":{"url":%q,"outdir":%q}},"api":{"write":{"url":"{url}","method":"GET","writefile":"{outdir}/response.json","prettify-json":true}}}`, server.URL, dir)
+	configFile := filepath.Join(dir, "surl.json")
+	if err := os.WriteFile(configFile, []byte(configJSON), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	var output strings.Builder
+	app := newApp()
+	app.Writer = &output
+	if err := app.Run(context.Background(), []string{"surl", "--conf", configFile, "run", "write"}); err != nil {
+		t.Fatal(err)
+	}
+	if output.String() != "" {
+		t.Errorf("terminal output = %q, want empty", output.String())
+	}
+	got, err := os.ReadFile(outputFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "{\n  \"title\": \"hello\",\n  \"body\": \"world\"\n}"
+	if string(got) != want {
+		t.Errorf("file content = %q, want %q", got, want)
 	}
 }
 

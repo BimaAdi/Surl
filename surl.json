@@ -92,6 +92,16 @@
       "method": "PUT",
       "readfile": "./README.md"
     },
+    "writefile": {
+      "url": "{url}/mirror",
+      "method": "PUT",
+      "json": {
+        "title": "some title",
+        "body": "some body"
+      },
+      "writefile": "./response.json",
+      "prettify-json": true
+    },
     "get_post_basic_auth": {
       "url": "{url}/posts/25",
       "method": "GET",

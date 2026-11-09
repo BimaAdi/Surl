@@ -36,6 +36,7 @@ func SubstituteRequest(spec RequestConfig, cfg Config) (RequestConfig, Config, e
 	}
 	spec.Body = body
 	spec.ReadFile = Substitute(spec.ReadFile, variables)
+	spec.WriteFile = Substitute(spec.WriteFile, variables)
 	spec.JSON = json.RawMessage(Substitute(string(spec.JSON), variables))
 	spec.Form = substituteFormValues(spec.Form, variables)
 	spec.FormMultipart = substituteMultipartValues(spec.FormMultipart, variables)

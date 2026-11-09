@@ -131,6 +131,33 @@ and send it as the request body. the path support variable substitution too.
 - [x] api
 
 
+### Write File Response
+```json
+{
+    "api": {
+        "writefile_example": {
+            "url": "http://localhost/posts",
+            "method": "GET",
+            "writefile": "./response.json",
+            "prettify-json": true
+        }
+    }
+}
+```
+instead of printing the response to the terminal, write it to the file at `writefile`.
+the path supports variable substitution too.
+
+- `writefile` (string, optional): path of the output file. when empty the
+  response is printed to the terminal as usual.
+- `prettify-json` (bool, optional): when the output is valid JSON, indent it
+  before printing or writing. non-JSON output is left unchanged.
+
+the content follows the `--output` flag (`raw` by default, or `json`) and the
+`--verbose` flag, the same as the terminal output.
+- [ ] global
+- [x] api
+
+
 ### Json 
 ```json
 {

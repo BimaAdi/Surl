@@ -49,6 +49,8 @@ type RequestConfig struct {
 	TLSConfig     *TLSConfig                   `json:"tls-config"`
 	Body          json.RawMessage              `json:"body"`
 	ReadFile      string                       `json:"readfile"`
+	WriteFile     string                       `json:"writefile"`
+	PrettifyJSON  bool                         `json:"prettify-json"`
 	JSON          json.RawMessage              `json:"json"`
 	Form          []request.FormValue          `json:"form"`
 	FormMultipart []request.MultipartFormValue `json:"form_multipart"`
